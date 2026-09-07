@@ -1,0 +1,97 @@
+x-common-env: &common-env
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/shrinklink
+  REDIS_URL: redis://redis:6379/0
+  JWT_SECRET: super-secret-jwt-key-change-in-prod
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: shrinklink
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 5
+
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "8001:8001"
+    environment:
+      <<: *common-env
+    volumes:
+      - ./services/auth-service/app:/app/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  url-service:
+    build: ./services/url-service
+    ports:
+      - "8002:8002"
+    environment:
+      <<: *common-env
+      ANALYTICS_SERVICE_URL: http://analytics-service:8003
+    volumes:
+      - ./services/url-service/app:/app/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  analytics-service:
+    build: ./services/analytics-service
+    ports:
+      - "8003:8003"
+    environment:
+      <<: *common-env
+    volumes:
+      - ./services/analytics-service/app:/app/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  notification-service:
+    build: ./services/notification-service
+    ports:
+      - "8004:8004"
+    environment:
+      <<: *common-env
+    volumes:
+      - ./services/notification-service/app:/app/app
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  celery-worker:
+    build: ./services/notification-service
+    command: celery -A app.tasks worker --loglevel=info
+    environment:
+      <<: *common-env
+    volumes:
+      - ./services/notification-service/app:/app/app
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
