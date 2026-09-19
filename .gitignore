@@ -10,3 +10,9 @@ build/
 .mypy_cache/
 .pytest_cache/
 postgres_data/
+
+# Ignore local Terraform directories
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
