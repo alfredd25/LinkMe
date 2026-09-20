@@ -1,0 +1,20 @@
+# =============================================================================
+# ShrinkLink — Notification Service (ClusterIP)
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: shrinklink
+  labels:
+    app: shrinklink-notification
+    app.kubernetes.io/part-of: shrinklink
+spec:
+  type: ClusterIP
+  selector:
+    app: shrinklink-notification
+  ports:
+    - name: http
+      port: 8004
+      targetPort: 8004
+      protocol: TCP

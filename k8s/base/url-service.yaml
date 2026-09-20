@@ -1,0 +1,20 @@
+# =============================================================================
+# ShrinkLink — URL Service (ClusterIP)
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: url-service
+  namespace: shrinklink
+  labels:
+    app: shrinklink-url
+    app.kubernetes.io/part-of: shrinklink
+spec:
+  type: ClusterIP
+  selector:
+    app: shrinklink-url
+  ports:
+    - name: http
+      port: 8002
+      targetPort: 8002
+      protocol: TCP

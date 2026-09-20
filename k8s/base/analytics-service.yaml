@@ -1,0 +1,20 @@
+# =============================================================================
+# ShrinkLink — Analytics Service (ClusterIP)
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-service
+  namespace: shrinklink
+  labels:
+    app: shrinklink-analytics
+    app.kubernetes.io/part-of: shrinklink
+spec:
+  type: ClusterIP
+  selector:
+    app: shrinklink-analytics
+  ports:
+    - name: http
+      port: 8003
+      targetPort: 8003
+      protocol: TCP

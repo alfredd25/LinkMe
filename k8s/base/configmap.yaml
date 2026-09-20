@@ -1,0 +1,17 @@
+# =============================================================================
+# ShrinkLink — ConfigMap (non-sensitive configuration)
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shrinklink-config
+  namespace: shrinklink
+  labels:
+    app.kubernetes.io/part-of: shrinklink
+data:
+  # Replace with Terraform output: rds_endpoint (host portion only, strip :5432)
+  DB_HOST: "shrinklink-db.xxxxxxxxxx.us-east-1.rds.amazonaws.com"
+  DB_NAME: "shrinklink"
+  # Replace with Terraform output: redis_endpoint
+  REDIS_HOST: "shrinklink-redis.xxxxxx.0001.use1.cache.amazonaws.com"
+  LOG_LEVEL: "info"

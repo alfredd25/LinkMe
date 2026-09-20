@@ -1,0 +1,10 @@
+# =============================================================================
+# ShrinkLink — Namespace
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shrinklink
+  labels:
+    app.kubernetes.io/part-of: shrinklink
+    app.kubernetes.io/managed-by: kubectl
