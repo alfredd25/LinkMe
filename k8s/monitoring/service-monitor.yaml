@@ -1,0 +1,41 @@
+# =============================================================================
+# ShrinkLink — ServiceMonitor (Prometheus Operator CRD)
+# =============================================================================
+# Scrapes /metrics from url-service pods (exposed by
+# prometheus-fastapi-instrumentator) for latency, RPS, and error tracking.
+#
+# Prerequisites:
+#   - kube-prometheus-stack (or Prometheus Operator) installed in the cluster
+#   - Prometheus configured to discover ServiceMonitors in the shrinklink namespace
+#     (via serviceMonitorNamespaceSelector / serviceMonitorSelector)
+# =============================================================================
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: shrinklink-url-service
+  namespace: shrinklink
+  labels:
+    app: shrinklink-url
+    app.kubernetes.io/part-of: shrinklink
+    release: kube-prometheus-stack           # match Helm release label selector
+spec:
+  # ── Target selector ───────────────────────────────────────────────────────
+  selector:
+    matchLabels:
+      app: shrinklink-url
+  namespaceSelector:
+    matchNames:
+      - shrinklink
+
+  # ── Scrape configuration ──────────────────────────────────────────────────
+  endpoints:
+    - port: http                             # matches Service port name
+      path: /metrics
+      interval: 10s                          # granular, near-real-time resolution
+      scrapeTimeout: 5s
+      honorLabels: true
+      metricRelabelings:
+        # Drop high-cardinality Go runtime metrics to save storage
+        - sourceLabels: [__name__]
+          regex: "go_.*"
+          action: drop
