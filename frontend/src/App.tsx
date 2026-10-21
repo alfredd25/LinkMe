@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
-import { getAnalytics } from "./api/client";
+import { getAnalytics, shortenUrl } from "./api/client";
 import AuthModal from "./components/AuthModal";
 import LinkTable from "./components/LinkTable";
 import AnalyticsChart from "./components/AnalyticsChart";
+import { isValidUrl } from "./utils/url";
 import type { UrlRow, ClickAnalytics } from "./types";
 
 export default function App() {
@@ -138,8 +139,6 @@ function StatusBadge({ label }: { label: string }) {
 /**
  * Wrapper around LinkShortener that also tracks URLs locally in App state.
  */
-import { shortenUrl } from "./api/client";
-
 function LinkShortenerWithTracking({ onShortened, addUrl }: { onShortened: () => void; addUrl: (u: UrlRow) => void }) {
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<{ short_code: string; short_url: string } | null>(null);
@@ -149,18 +148,25 @@ function LinkShortenerWithTracking({ onShortened, addUrl }: { onShortened: () =>
 
   const handleShorten = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url.trim()) return;
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) return;
+
+    if (!isValidUrl(trimmedUrl)) {
+      setError("Failed to shorten URL. Please enter a valid URL.");
+      return;
+    }
+
     setError("");
     setLoading(true);
     setResult(null);
     try {
-      const data = await shortenUrl(url.trim());
+      const data = await shortenUrl(trimmedUrl);
       const displayUrl = `${window.location.origin}/api/urls/${data.short_code}`;
       setResult({ ...data, short_url: displayUrl });
       addUrl({
         id: crypto.randomUUID(),
         short_code: data.short_code,
-        long_url: url.trim(),
+        long_url: trimmedUrl,
         created_at: new Date().toISOString(),
         total_clicks: 0,
       });

@@ -6,6 +6,8 @@ interface Props {
   onShortened: () => void;
 }
 
+import { isValidUrl } from "../utils/url";
+
 export default function LinkShortener({ onShortened }: Props) {
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<ShortenedUrl | null>(null);
@@ -15,12 +17,19 @@ export default function LinkShortener({ onShortened }: Props) {
 
   const handleShorten = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url.trim()) return;
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) return;
+
+    if (!isValidUrl(trimmedUrl)) {
+      setError("Failed to shorten URL. Please enter a valid URL.");
+      return;
+    }
+
     setError("");
     setLoading(true);
     setResult(null);
     try {
-      const data = await shortenUrl(url.trim());
+      const data = await shortenUrl(trimmedUrl);
       // Construct the proper redirect URL via the url-service proxy
       const displayUrl = `${window.location.origin}/api/urls/${data.short_code}`;
       setResult({ ...data, short_url: displayUrl });
