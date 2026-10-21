@@ -1,5 +1,6 @@
 import os
 import re
+import urllib.parse
 
 from celery import Celery
 from fastapi import FastAPI, Depends, HTTPException, APIRouter
@@ -7,15 +8,33 @@ from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.models import Click, Url
+# UPDATE THIS IMPORT to include engine and Base
+from app.database import get_db, engine
+from app.models import Base, Click, Url
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_PASSWORD = urllib.parse.quote_plus(os.getenv("REDIS_PASSWORD", "")) if os.getenv("REDIS_PASSWORD") else ""
+
+if REDIS_PASSWORD:
+    REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
+else:
+    REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
 
 app = FastAPI(title="Analytics Service", version="1.0.0")
 router = APIRouter()
 
+# --- ADD THIS BLOCK to create the clicks table ---
+try:
+    Base.metadata.create_all(bind=engine)
+    print("[Database] Analytics Schema initialized.")
+except Exception as e:
+    print(f"[Database] Warning: {e}")
+# -------------------------------------------------
+
 celery_app = Celery("notifications", broker=REDIS_URL)
+
+# ... (Keep the rest of the file exactly the same)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 import os
 import secrets
 import string
+import urllib.parse # <-- Ensure this is imported
 
 import httpx
 import redis
@@ -13,9 +14,20 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from app.database import get_db, engine, Base
 from app.models import Url
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-ANALYTICS_SERVICE_URL = os.getenv("ANALYTICS_SERVICE_URL", "http://localhost:8003")
+# --- Replace the old REDIS_URL line with this block ---
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_PASSWORD = urllib.parse.quote_plus(os.getenv("REDIS_PASSWORD", "")) if os.getenv("REDIS_PASSWORD") else ""
+
+if REDIS_PASSWORD:
+    REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
+else:
+    REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
+
+# Also update the Analytics URL to use internal Kubernetes DNS
+ANALYTICS_SERVICE_URL = os.getenv("ANALYTICS_SERVICE_URL", "http://analytics-service.shrinklink.svc.cluster.local:8003")
 REDIS_TTL = 86400  # 24 hours
+# ------------------------------------------------------
 
 app = FastAPI(title="URL Service", version="1.0.0")
 router = APIRouter()
@@ -31,6 +43,7 @@ except Exception as e:
 redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 
 BASE62 = string.ascii_letters + string.digits
+
 
 
 def generate_short_code(length: int = 7) -> str:
