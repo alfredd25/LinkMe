@@ -19,7 +19,7 @@ resource "aws_db_subnet_group" "main" {
 # -----------------------------------------------------------------------------
 resource "aws_security_group" "rds" {
   name_prefix = "${var.project_name}-rds-"
-  description = "Security group for RDS PostgreSQL — allows EKS node access only"
+  description = "Security group for RDS PostgreSQL - allows EKS node access only"
   vpc_id      = var.vpc_id
 
   tags = {

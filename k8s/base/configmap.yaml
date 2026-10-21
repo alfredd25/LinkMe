@@ -1,17 +1,15 @@
-# =============================================================================
-# ShrinkLink — ConfigMap (non-sensitive configuration)
-# =============================================================================
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: shrinklink-config
   namespace: shrinklink
-  labels:
-    app.kubernetes.io/part-of: shrinklink
 data:
-  # Replace with Terraform output: rds_endpoint (host portion only, strip :5432)
-  DB_HOST: "shrinklink-db.xxxxxxxxxx.us-east-1.rds.amazonaws.com"
+  DB_HOST: "shrinklink-postgres.cm1aku6iy12j.us-east-1.rds.amazonaws.com"
+  DB_PORT: "5432"
   DB_NAME: "shrinklink"
-  # Replace with Terraform output: redis_endpoint
-  REDIS_HOST: "shrinklink-redis.xxxxxx.0001.use1.cache.amazonaws.com"
-  LOG_LEVEL: "info"
+  DB_USER: "shrinklink_admin"
+  REDIS_HOST: "shrinklink-redis.pj1qw2.0001.use1.cache.amazonaws.com"
+  REDIS_PORT: "6379"
+  ANALYTICS_SERVICE_URL: "http://shrinklink-analytics:8003"
+  NOTIFICATION_SERVICE_URL: "http://shrinklink-notification:8004"
+  LOG_LEVEL: "INFO"

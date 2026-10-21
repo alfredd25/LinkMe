@@ -1,10 +1,3 @@
-# =============================================================================
-# ElastiCache Module — Redis (Single Node, Cost-Efficient)
-# =============================================================================
-
-# -----------------------------------------------------------------------------
-# Cache Subnet Group
-# -----------------------------------------------------------------------------
 resource "aws_elasticache_subnet_group" "main" {
   name       = "${var.project_name}-cache-subnet-group"
   subnet_ids = var.private_subnet_ids
@@ -14,12 +7,9 @@ resource "aws_elasticache_subnet_group" "main" {
   }
 }
 
-# -----------------------------------------------------------------------------
-# Security Group — Ingress from EKS Nodes Only
-# -----------------------------------------------------------------------------
 resource "aws_security_group" "redis" {
   name_prefix = "${var.project_name}-redis-"
-  description = "Security group for ElastiCache Redis — allows EKS node access only"
+  description = "Security group for RDS PostgreSQL - allows EKS node access only"
   vpc_id      = var.vpc_id
 
   tags = {

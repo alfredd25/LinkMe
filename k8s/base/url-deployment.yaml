@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: url-service
-          image: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/shrinklink-url-service:latest
+          image: 121728644131.dkr.ecr.us-east-1.amazonaws.com/shrinklink-url:latest
           ports:
             - containerPort: 8002
               protocol: TCP

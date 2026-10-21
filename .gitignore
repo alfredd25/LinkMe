@@ -16,3 +16,4 @@ postgres_data/
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
+terraform/terraform.tfvars

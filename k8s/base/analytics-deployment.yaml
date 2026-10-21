@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: analytics-service
-          image: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/shrinklink-analytics-service:latest
+          image: 121728644131.dkr.ecr.us-east-1.amazonaws.com/shrinklink-analytics:latest
           ports:
             - containerPort: 8003
               protocol: TCP

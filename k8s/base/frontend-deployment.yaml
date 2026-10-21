@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/shrinklink-frontend:latest
+          image: 121728644131.dkr.ecr.us-east-1.amazonaws.com/shrinklink-frontend:latest
           ports:
             - containerPort: 80
               protocol: TCP

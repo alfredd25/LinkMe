@@ -13,7 +13,7 @@
 
 terraform {
   backend "s3" {
-    bucket         = "shrinklink-tf-state-2026"
+    bucket         = "shrinklink-tf-state-121728644131"
     key            = "prod/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "shrinklink-tf-locks"
