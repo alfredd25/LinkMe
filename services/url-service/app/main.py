@@ -4,13 +4,13 @@ import string
 
 import httpx
 import redis
-from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, Request
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, Request, APIRouter
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, HttpUrl
 from sqlalchemy.orm import Session
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from app.database import get_db
+from app.database import get_db, engine, Base
 from app.models import Url
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -18,7 +18,15 @@ ANALYTICS_SERVICE_URL = os.getenv("ANALYTICS_SERVICE_URL", "http://localhost:800
 REDIS_TTL = 86400  # 24 hours
 
 app = FastAPI(title="URL Service", version="1.0.0")
+router = APIRouter()
 Instrumentator().instrument(app).expose(app)
+
+# Auto-create tables for URL service
+try:
+    Base.metadata.create_all(bind=engine)
+    print("[Database] URL Schema initialized.")
+except Exception as e:
+    print(f"[Database] Warning: {e}")
 
 redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 
@@ -53,7 +61,15 @@ async def emit_click(url_id: str, referrer: str | None, user_agent: str | None):
 
 # ── Endpoints ────────────────────────────────────────────────────────
 
-@app.post("/shorten", response_model=ShortenResponse, status_code=201)
+@app.get("/healthz")
+@router.get("/healthz")
+def healthz():
+    return {"status": "ok"}
+
+
+# Mount to both / and /shorten on the router
+@router.post("/", response_model=ShortenResponse, status_code=201)
+@router.post("/shorten", response_model=ShortenResponse, status_code=201)
 def shorten(body: ShortenRequest, request: Request, db: Session = Depends(get_db)):
     code = generate_short_code()
     # Retry on unlikely collision
@@ -72,12 +88,7 @@ def shorten(body: ShortenRequest, request: Request, db: Session = Depends(get_db
     return ShortenResponse(short_code=code, short_url=f"{base}/{code}")
 
 
-@app.get("/healthz")
-def healthz():
-    return {"status": "ok"}
-
-
-@app.get("/{code}")
+@router.get("/{code}")
 async def redirect(code: str, request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     # 1. Check Redis
     long_url = redis_client.get(f"url:{code}")
@@ -103,3 +114,8 @@ async def redirect(code: str, request: Request, background_tasks: BackgroundTask
 
     # 4. Redirect
     return RedirectResponse(url=long_url, status_code=302)
+
+
+# Include the populated router
+app.include_router(router, prefix="/api/urls", tags=["urls"])
+app.include_router(router, tags=["urls-root"])

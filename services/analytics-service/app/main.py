@@ -2,7 +2,7 @@ import os
 import re
 
 from celery import Celery
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -13,6 +13,7 @@ from app.models import Click, Url
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 app = FastAPI(title="Analytics Service", version="1.0.0")
+router = APIRouter()
 
 celery_app = Celery("notifications", broker=REDIS_URL)
 
@@ -38,7 +39,8 @@ class ClickIn(BaseModel):
 
 # ── Endpoints ────────────────────────────────────────────────────────
 
-@app.post("/clicks", status_code=201)
+# Changed from @app.post to @router.post
+@router.post("/clicks", status_code=201)
 def record_click(body: ClickIn, db: Session = Depends(get_db)):
     click = Click(
         url_id=body.url_id,
@@ -62,7 +64,8 @@ def record_click(body: ClickIn, db: Session = Depends(get_db)):
     return {"status": "recorded", "total_clicks": total}
 
 
-@app.get("/analytics/{code}")
+# Changed from @app.get("/analytics/{code}") to @router.get("/{code}")
+@router.get("/{code}")
 def get_analytics(code: str, db: Session = Depends(get_db)):
     url_row = db.query(Url).filter(Url.short_code == code).first()
     if not url_row:
@@ -95,6 +98,13 @@ def get_analytics(code: str, db: Session = Depends(get_db)):
     }
 
 
+# Bind healthz to both the root (for Kubernetes probes) and the router (for ALB tests)
 @app.get("/healthz")
+@router.get("/healthz")
 def healthz():
     return {"status": "ok"}
+
+
+# Include the populated router
+app.include_router(router, prefix="/api/analytics", tags=["analytics"])
+app.include_router(router, tags=["analytics-root"])
