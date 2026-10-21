@@ -9,13 +9,12 @@ interface Props {
   onClose: () => void;
 }
 
-const COLORS = ["#818cf8", "#a78bfa", "#c084fc", "#e879f9", "#f472b6", "#fb7185"];
+const BAR_COLORS = ["#0f172a", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1"];
 
 export default function AnalyticsChart({ data, onClose }: Props) {
   const deviceData = Object.entries(data.device_breakdown).map(([name, value]) => ({ name, value }));
   const referrerData = Object.entries(data.referrer_counts).map(([name, value]) => ({ name, value }));
 
-  // Simulate click-over-time data from total clicks (real implementation would use a time-series endpoint)
   const timeData = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
@@ -26,87 +25,79 @@ export default function AnalyticsChart({ data, onClose }: Props) {
   });
 
   return (
-    <div className="space-y-6 rounded-2xl border border-white/10 bg-surface-light p-6">
-      {/* Header */}
+    <div className="space-y-6 rounded-sm border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-white">
-            Analytics for <code className="rounded-md bg-brand-500/10 px-2 py-1 text-brand-300">{data.short_code}</code>
+          <h3 className="text-base font-semibold text-slate-900">
+            Analytics for <code className="rounded-sm border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-xs text-slate-800">{data.short_code}</code>
           </h3>
-          <p className="mt-1 text-sm text-slate-400 truncate max-w-lg">{data.long_url}</p>
+          <p className="mt-1 text-xs text-slate-500 truncate max-w-md">{data.long_url}</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="rounded-xl bg-brand-500/10 px-4 py-2 text-center">
-            <p className="text-2xl font-bold text-brand-300">{data.total_clicks}</p>
-            <p className="text-xs text-slate-400">Total Clicks</p>
+        <div className="flex items-center gap-3">
+          <div className="rounded-sm border border-slate-200 bg-slate-50 px-3 py-1.5 text-center">
+            <p className="text-xl font-semibold text-slate-900">{data.total_clicks}</p>
+            <p className="text-[10px] uppercase font-medium tracking-wide text-slate-500">Total Clicks</p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg bg-white/5 p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-white cursor-pointer"
+            className="rounded-sm border border-slate-200 p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
       </div>
 
-      {/* Clicks Over Time */}
       <div>
-        <h4 className="mb-3 text-sm font-semibold text-slate-300">Clicks Over Time</h4>
-        <div className="h-56">
+        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Clicks Over Time</h4>
+        <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={timeData}>
-              <defs>
-                <linearGradient id="clickGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#818cf8" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-              <XAxis dataKey="date" stroke="#475569" tick={{ fontSize: 12 }} />
-              <YAxis stroke="#475569" tick={{ fontSize: 12 }} allowDecimals={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis dataKey="date" stroke="#94a3b8" tick={{ fontSize: 11 }} />
+              <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#1e293b",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "12px",
-                  color: "#e2e8f0",
-                  fontSize: "13px",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "2px",
+                  color: "#0f172a",
+                  fontSize: "12px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
                 }}
               />
-              <Area type="monotone" dataKey="clicks" stroke="#818cf8" strokeWidth={2} fill="url(#clickGradient)" />
+              <Area type="monotone" dataKey="clicks" stroke="#0f172a" strokeWidth={1.5} fill="#f1f5f9" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Device + Referrer bar charts side by side */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Device Breakdown */}
         <div>
-          <h4 className="mb-3 text-sm font-semibold text-slate-300">Device Breakdown</h4>
+          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Device Breakdown</h4>
           {deviceData.length === 0 ? (
-            <p className="text-sm text-slate-500">No device data yet.</p>
+            <p className="text-xs text-slate-400">No device data yet.</p>
           ) : (
-            <div className="h-48">
+            <div className="h-44">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={deviceData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
-                  <XAxis type="number" stroke="#475569" tick={{ fontSize: 12 }} allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" stroke="#475569" tick={{ fontSize: 12 }} width={70} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                  <XAxis type="number" stroke="#94a3b8" tick={{ fontSize: 11 }} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" stroke="#94a3b8" tick={{ fontSize: 11 }} width={70} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1e293b",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: "12px",
-                      color: "#e2e8f0",
-                      fontSize: "13px",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "2px",
+                      color: "#0f172a",
+                      fontSize: "12px",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
                     }}
                   />
-                  <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={24}>
+                  <Bar dataKey="value" radius={[0, 0, 0, 0]} barSize={20}>
                     {deviceData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -115,30 +106,30 @@ export default function AnalyticsChart({ data, onClose }: Props) {
           )}
         </div>
 
-        {/* Referrers */}
         <div>
-          <h4 className="mb-3 text-sm font-semibold text-slate-300">Top Referrers</h4>
+          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Top Referrers</h4>
           {referrerData.length === 0 ? (
-            <p className="text-sm text-slate-500">No referrer data yet.</p>
+            <p className="text-xs text-slate-400">No referrer data yet.</p>
           ) : (
-            <div className="h-48">
+            <div className="h-44">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={referrerData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
-                  <XAxis type="number" stroke="#475569" tick={{ fontSize: 12 }} allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" stroke="#475569" tick={{ fontSize: 12 }} width={70} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                  <XAxis type="number" stroke="#94a3b8" tick={{ fontSize: 11 }} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" stroke="#94a3b8" tick={{ fontSize: 11 }} width={70} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1e293b",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: "12px",
-                      color: "#e2e8f0",
-                      fontSize: "13px",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "2px",
+                      color: "#0f172a",
+                      fontSize: "12px",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
                     }}
                   />
-                  <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={24}>
+                  <Bar dataKey="value" radius={[0, 0, 0, 0]} barSize={20}>
                     {referrerData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[(i + 2) % COLORS.length]} />
+                      <Cell key={i} fill={BAR_COLORS[(i + 1) % BAR_COLORS.length]} />
                     ))}
                   </Bar>
                 </BarChart>
